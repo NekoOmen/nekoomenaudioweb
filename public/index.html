@@ -85,6 +85,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .auto-btn.active{border-color:var(--warn);background:rgba(255,171,64,.1);color:var(--warn);box-shadow:0 0 12px rgba(255,171,64,.15)}
 .auto-btn .detail{font-size:8px;color:var(--dim);margin-top:2px}
 .auto-btn.active .detail{color:rgba(255,171,64,.6)}
+.auto-featured{background:linear-gradient(135deg,rgba(255,171,64,.15),rgba(156,108,255,.15));border-color:var(--warn);color:var(--warn);font-size:12px;padding:10px 18px}
+.auto-featured:hover{box-shadow:0 0 16px rgba(255,171,64,.25);border-color:var(--warn)}
+.auto-featured.active{background:linear-gradient(135deg,rgba(255,171,64,.25),rgba(156,108,255,.25));box-shadow:0 0 20px rgba(255,171,64,.3)}
 
 .presets-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .preset-btn{padding:10px 6px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;transition:all .2s;text-align:center}
@@ -284,8 +287,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   let exportFormat = 'mp3';
 
   const autoModes = [
-    { id: 'speed2x', label: '2x Speed', desc: 'Most common bypass', speed: 2.0, pitch: 0 },
-    { id: 'speed15x', label: '1.5x Speed', desc: 'Moderate bypass', speed: 1.5, pitch: 0 },
+    { id: 'autobypass', label: '⚡ AUTO BYPASS', desc: 'Recommended · One click', speed: 2.0, pitch: 1, featured: true },
+    { id: 'speed2x', label: '2x Speed', desc: 'Speed only', speed: 2.0, pitch: 0 },
+    { id: 'speed15x', label: '1.5x Speed', desc: 'Moderate', speed: 1.5, pitch: 0 },
     { id: 'pitch3', label: 'Pitch +3st', desc: 'Pitch only', speed: 1.0, pitch: 3 },
     { id: 'combo', label: '1.5x +2st', desc: 'Speed + pitch', speed: 1.5, pitch: 2 },
   ];
@@ -551,7 +555,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   (function () {
     const c = $('autoModes');
     autoModes.forEach(m => {
-      const b = document.createElement('button'); b.className = 'auto-btn'; b.dataset.id = m.id;
+      const b = document.createElement('button'); b.className = 'auto-btn' + (m.featured ? ' auto-featured' : ''); b.dataset.id = m.id;
       b.innerHTML = `${m.label}<div class="detail">${m.desc}</div>`;
       b.addEventListener('click', () => {
         if (activeAutoMode === m.id) { activeAutoMode = null; speed = 1.0; pitch = 0; }
