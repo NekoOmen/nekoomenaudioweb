@@ -147,10 +147,83 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .auto-active-glow{animation:glow 2s ease-in-out infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinning{animation:spin 1s linear infinite;display:inline-block}
+
+/* Gate screen */
+.gate-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-overlay.hidden{display:none}
+.gate-box{max-width:480px;width:100%;text-align:center;animation:fadeIn .6s}
+.gate-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:32px}
+.gate-logo .logo-icon{width:48px;height:48px;border-radius:12px;font-size:22px}
+.gate-title{font-size:26px;font-weight:800;margin-bottom:8px}
+.gate-title .accent{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gate-sub{color:var(--dim);font-size:13px;margin-bottom:32px;line-height:1.6}
+.gate-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.gate-step{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--border);transition:all .3s;text-align:left}
+.gate-step.done{border-color:var(--success);background:rgba(0,230,118,.06)}
+.gate-step-icon{font-size:28px;flex-shrink:0}
+.gate-step-info{flex:1}
+.gate-step-title{font-size:13px;font-weight:700;margin-bottom:2px}
+.gate-step-desc{font-size:11px;color:var(--dim)}
+.gate-step-btn{padding:8px 18px;border-radius:8px;border:none;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.5px;text-decoration:none;display:inline-block;flex-shrink:0}
+.gate-step-btn.yt{background:#ff0000;color:#fff}
+.gate-step-btn.yt:hover{background:#cc0000;box-shadow:0 0 12px rgba(255,0,0,.3)}
+.gate-step-btn.tt{background:#000;color:#fff;border:1px solid #333}
+.gate-step-btn.tt:hover{background:#1a1a1a;box-shadow:0 0 12px rgba(255,255,255,.1)}
+.gate-step .check{display:none;color:var(--success);font-size:20px;font-weight:700;flex-shrink:0}
+.gate-step.done .check{display:block}
+.gate-step.done .gate-step-btn{display:none}
+.gate-continue{width:100%;padding:14px;border-radius:12px;border:none;font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:1px;cursor:pointer;transition:all .3s}
+.gate-continue.locked{background:var(--surface2);color:var(--dim);cursor:not-allowed;border:1px solid var(--border)}
+.gate-continue.unlocked{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 24px rgba(0,229,255,.3)}
+.gate-continue.unlocked:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(0,229,255,.4)}
+.gate-note{font-size:9px;color:var(--dim);margin-top:16px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- GATE SCREEN -->
+<div class="gate-overlay" id="gateOverlay">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="logo-icon" style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:22px;font-weight:800">♫</div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;letter-spacing:1px">NOMEN<span style="color:var(--accent)">.</span>AUDIO</div>
+      </div>
+    </div>
+
+    <div class="gate-title">Support Us to <span class="accent">Continue</span></div>
+    <div class="gate-sub">This tool is 100% free. To keep it running, please subscribe and follow us first!</div>
+
+    <div class="gate-steps">
+      <!-- YouTube -->
+      <div class="gate-step" id="gateYT">
+        <div class="gate-step-icon">▶️</div>
+        <div class="gate-step-info">
+          <div class="gate-step-title">Subscribe on YouTube</div>
+          <div class="gate-step-desc">@Neko_Omen — Roblox tutorials & more</div>
+        </div>
+        <a class="gate-step-btn yt" id="btnYT" href="https://www.youtube.com/@Neko_Omen" target="_blank">SUBSCRIBE</a>
+        <div class="check">✓</div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="gate-step" id="gateTT">
+        <div class="gate-step-icon">🎵</div>
+        <div class="gate-step-info">
+          <div class="gate-step-title">Follow on TikTok</div>
+          <div class="gate-step-desc">@noo_men — Main account</div>
+        </div>
+        <a class="gate-step-btn tt" id="btnTT" href="https://www.tiktok.com/@noo_men" target="_blank">FOLLOW</a>
+        <div class="check">✓</div>
+      </div>
+    </div>
+
+    <button class="gate-continue locked" id="gateContinue" disabled>COMPLETE BOTH STEPS FIRST</button>
+    <div class="gate-note">After clicking both links, the continue button will unlock</div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
   <div class="header">
     <div class="logo">
       <div class="logo-icon">♫</div>
@@ -277,6 +350,59 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 </div>
 
 <script>
+// === GATE LOGIC ===
+(function() {
+  const GATE_KEY = 'nomen_audio_gate_passed';
+  const gateOverlay = document.getElementById('gateOverlay');
+  const mainApp = document.getElementById('mainApp');
+  const gateContinue = document.getElementById('gateContinue');
+  const btnYT = document.getElementById('btnYT');
+  const btnTT = document.getElementById('btnTT');
+  const gateYT = document.getElementById('gateYT');
+  const gateTT = document.getElementById('gateTT');
+
+  let ytClicked = false, ttClicked = false;
+
+  // Check if already passed
+  if (localStorage.getItem(GATE_KEY) === 'true') {
+    gateOverlay.classList.add('hidden');
+    mainApp.style.display = '';
+    return;
+  }
+
+  function checkUnlock() {
+    if (ytClicked && ttClicked) {
+      gateContinue.disabled = false;
+      gateContinue.className = 'gate-continue unlocked';
+      gateContinue.textContent = '🚀 CONTINUE TO NOMEN AUDIO';
+    }
+  }
+
+  btnYT.addEventListener('click', function() {
+    ytClicked = true;
+    gateYT.classList.add('done');
+    checkUnlock();
+  });
+
+  btnTT.addEventListener('click', function() {
+    ttClicked = true;
+    gateTT.classList.add('done');
+    checkUnlock();
+  });
+
+  gateContinue.addEventListener('click', function() {
+    if (!ytClicked || !ttClicked) return;
+    localStorage.setItem(GATE_KEY, 'true');
+    gateOverlay.style.transition = 'opacity .4s';
+    gateOverlay.style.opacity = '0';
+    setTimeout(function() {
+      gateOverlay.classList.add('hidden');
+      mainApp.style.display = '';
+    }, 400);
+  });
+})();
+
+// === MAIN APP ===
 (() => {
   let files = [], activeIdx = 0;
   let speed = 1.0, pitch = 0, volume = 1.0;
